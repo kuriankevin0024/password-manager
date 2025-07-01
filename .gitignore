@@ -8,5 +8,6 @@
 .idea/
 
 # Application
-passwords.enc
-secret.key
+*.enc
+*.key
+*.bin
