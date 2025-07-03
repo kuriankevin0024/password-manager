@@ -1,3 +1,1 @@
 cryptography==45.0.4
-
-baselibrary @ file:///Users/kuriankevin/Documents/Learning/base-library/dist/baselibrary-0.0.2-py3-none-any.whl
