@@ -8,6 +8,6 @@
 .idea/
 
 # Application
-*.enc
-*.key
 *.bin
+*.enc
+*.sha256
