@@ -41,26 +41,37 @@ class PasswordManager:
         self.vault_file = vault_file
         self.secret = self.create_secret(master_password, salt_file)
         self.vault = self.load_vault(vault_file)
-        self.validate_master_password()
+        self.validate_master_password(master_password)
 
-    def validate_master_password(self):
+    def validate_master_password(self, master_password):
         try:
             encrypted_master_password = self.vault['__master__']
-            self.secret.decrypt(encrypted_master_password.encode()).decode()
+            stored_master_password = self.secret.decrypt(encrypted_master_password.encode()).decode()
+            if stored_master_password != master_password:
+                raise RuntimeError('Vault file is corrupted.')
         except InvalidToken:
             print('Master password is wrong')
             exit(1)
 
     def add_password(self, key, password):
+        if key == '__master__':
+            raise RuntimeError('Updating master password is not allowed.')
+        if key in self.vault.keys():
+            choice = input('Do you want to replace existing entry (y/n): ')
+            if choice.lower() != 'y':
+                return
         self.vault[key] = self.secret.encrypt(password.encode()).decode()
         self.dump_vault(self.vault, self.vault_file)
 
     def get_password(self, key):
-        encrypted_password = self.vault[key]
+        encrypted_password = self.vault.get(key)
+        if not encrypted_password:
+            return None
         return self.secret.decrypt(encrypted_password.encode()).decode()
 
 
 def main():
+    master_password = ''
     salt_file = 'salt.bin'
     vault_file = 'vault.enc'
     if not os.path.exists(salt_file) and not os.path.exists(vault_file):
@@ -74,7 +85,7 @@ def main():
         print(f'FileNotFound Vault: {vault_file}')
         exit(1)
 
-    master_password = getpass('Enter master password: ')
+    master_password = master_password if master_password else getpass('Enter master password: ')
     pm = PasswordManager(master_password, salt_file, vault_file)
 
     print("""
